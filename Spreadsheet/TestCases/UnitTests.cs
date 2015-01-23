@@ -54,6 +54,39 @@ namespace TestCases
         }
 
         [TestMethod]
+        [ExpectedException(typeof(FormulaFormatException))]
+        public void Construct4()
+        {
+            Formula f = new Formula("2f3");
+        }
+
+        [TestMethod]
+        [ExpectedException(typeof(FormulaFormatException))]
+        public void Construct5()
+        {
+            Formula f = new Formula("xy12");
+        }
+
+        [TestMethod]
+        public void Construct6()
+        {
+            Formula f = new Formula("x2 + y3");
+        }
+
+        [TestMethod]
+        [ExpectedException(typeof(FormulaFormatException))]
+        public void Construct7()
+        {
+            Formula f = new Formula("2x + 3y");
+        }
+
+        [TestMethod]
+        public void Construct8()
+        {
+            Formula f = new Formula("2.5e9 + x5 / 17");
+        }
+
+        [TestMethod]
         public void Construct9()
         {
             Formula f = new Formula("5 * X5 / 134.77 - D7");
@@ -108,39 +141,6 @@ namespace TestCases
         }
 
         [TestMethod]
-        [ExpectedException(typeof(FormulaFormatException))]
-        public void Construct4()
-        {
-            Formula f = new Formula("2f3");
-        }
-
-        [TestMethod]
-        [ExpectedException(typeof(FormulaFormatException))]
-        public void Construct5()
-        {
-            Formula f = new Formula("xy12");
-        }
-
-        [TestMethod]
-        public void Construct6()
-        {
-            Formula f = new Formula("x2 + y3");
-        }
-
-        [TestMethod]
-        [ExpectedException(typeof(FormulaFormatException))]
-        public void Construct7()
-        {
-            Formula f = new Formula("2x + 3y");
-        }
-
-        [TestMethod]
-        public void Construct8()
-        {
-            Formula f = new Formula("2.5e9 + x5 / 17");
-        }
-
-        [TestMethod]
         public void Evaluate1()
         {
             Formula f = new Formula("2+3");
@@ -167,6 +167,34 @@ namespace TestCases
         {
             Formula f = new Formula("x5 + y6");
             f.Evaluate(s => { throw new ArgumentException(); });
+        }
+
+        [TestMethod]
+        public void Evaluate4()
+        {
+            Formula f = new Formula("13 - 6");
+            Assert.AreEqual(f.Evaluate(s => 0), 7.0, 1e-6);
+        }
+
+        [TestMethod]
+        public void Evaluate5()
+        {
+            Formula f = new Formula("45 + 10 * 4");
+            Assert.AreEqual(f.Evaluate(s => 0), 85.0, 1e-6);
+        }
+
+        [TestMethod]
+        public void Evaluate6()
+        {
+            Formula f = new Formula("10 / 5 + 3");
+            Assert.AreEqual(f.Evaluate(s => 0), 5.0, 1e-6);
+        }
+
+        [TestMethod]
+        public void Evaluate7()
+        {
+            Formula f = new Formula("10 / (2 + 3)");
+            Assert.AreEqual(f.Evaluate(s => 0), 2.0, 1e-6);
         }
         
     }

@@ -40,7 +40,7 @@ namespace SpreadsheetUtilities
                 double parseDouble;
                 if (double.TryParse(s, out parseDouble))
                 {
-                    if(parseDouble < 0)
+                    if (parseDouble < 0)
                     {
                         throw new FormulaFormatException("Double Values Must Be Posative");
                     }
@@ -49,7 +49,7 @@ namespace SpreadsheetUtilities
                         formulaList.Add(s);
                     }
                 }
-                else if(char.IsLetter(s, 0))
+                else if (char.IsLetter(s, 0))
                 {
                     if (s.Length < 2)
                     {
@@ -80,11 +80,12 @@ namespace SpreadsheetUtilities
                 }
                 else if (s == "(" || s == ")" || s == "*" || s == "+" || s == "-" || s == "/")
                 {
-                    if ((formulaList.Count() < 1) && s != "(" )
+                    //Formula cannot begin with an operator or closing parenthesis
+                    if ((formulaList.Count() < 1) && s != "(")
                     {
                         throw new FormulaFormatException("Formula can only begin with variable, number of (");
                     }
-                    else if(formulaList.Count(p => p == ")" == true) > formulaList.Count(p => p == "(" == true))
+                    else if (formulaList.Count(p => p == ")" == true) > formulaList.Count(p => p == "(" == true))
                     {
                         throw new FormulaFormatException("Formula has too many closed parenthesis");
                     }
@@ -154,7 +155,232 @@ namespace SpreadsheetUtilities
         /// </summary>
         public double Evaluate(Lookup lookup)
         {
-            return 0;
+            Stack<double> valueStack = new Stack<double>();
+            Stack<String> operStack = new Stack<String>();
+
+            foreach (String s in formulaList)
+            {
+                //if s is either a value
+                double doubValue;
+                if (double.TryParse(s, out doubValue) || Char.IsLetter(s, 0))
+                {
+                    if (operStack.Count() != 0 && (operStack.Peek() == "*" || operStack.Peek() == "/"))
+                    {
+                        if(valueStack.Count < 1)
+                        {
+                            throw new FormulaEvaluationException("While processing a value, an attempt was made to multiply that value by a preceeding value but the valueStack was empty");
+                        }
+
+                        double leftOperand = valueStack.Pop();
+                        string op = operStack.Pop();
+
+                        if (op == "*")
+                        {
+                            if (Char.IsLetter(s, 0))
+                            {
+                                if(lookup(s) == null)//***************fix this!!!!!!!!!!!!!!!!!!!***************************************// !!!!!!!!! *********** ////////
+                                {
+                                    throw new FormulaEvaluationException("Variable: " + s +" has no value");
+                                }
+                                valueStack.Push(leftOperand * lookup(s));
+                            }
+                            else
+                            {
+                                valueStack.Push(leftOperand * doubValue);
+                            }
+                        }
+                        else
+                        {
+                            if (Char.IsLetter(s, 0))
+                            {
+                                if(lookup(s) == null)
+                                {
+                                    throw new FormulaEvaluationException("Variable: " + s +" has no value");
+                                }
+
+                                if(lookup(s) == 0)
+                                {
+                                    throw new FormulaEvaluationException("Devision by Zero was attempted via variable immediately following the processing of a preceeding value");
+                                }
+
+                                valueStack.Push(leftOperand / lookup(s));
+                            }
+                            else
+                            {
+                                if(doubValue == 0)
+                                {
+                                    throw new FormulaEvaluationException("Devision by Zero was attempted via double immediatlly following the processing of a preceeding value");
+                                }
+
+                                valueStack.Push(leftOperand / doubValue);
+                            }
+                        }
+                    }
+
+                    else
+                    {
+                        if(Char.IsLetter(s, 0))
+                        {
+                            valueStack.Push(lookup(s));
+                        }
+                        else
+                        {
+                            valueStack.Push(doubValue);
+                        }
+                    }
+                }
+                //if s is + or - operator
+                else if (s == "+" || s == "-")
+                {
+                    if (operStack.Count() != 0 && (operStack.Peek() == "-" || operStack.Peek() == "+"))
+                    {
+                        if(valueStack.Count < 2)
+                        {
+                            throw new FormulaEvaluationException("While processing a + or - operator, there were less than two values in valueStack");
+                        }
+
+                        double rightOperand = valueStack.Pop();
+                        double leftOperand = valueStack.Pop();
+
+                        string op = operStack.Pop();
+
+                        if (op == "+")
+                        {
+                            valueStack.Push(leftOperand + rightOperand);
+                        }
+                        else
+                        {
+                            valueStack.Push(leftOperand - rightOperand);
+                        }
+                    }
+
+                    operStack.Push(s);
+                }
+                //if s is * or / operator
+                else if (s == "*" || s == "/")
+                {
+                    operStack.Push(s);
+                }
+                //if s is (
+                else if (s == "(")
+                {
+                    operStack.Push(s);
+                }
+                //if s is )
+                else if (s == ")")
+                {
+                    if(operStack.Peek() == "+" || operStack.Peek() == "-")
+                    {
+                        if(valueStack.Count < 2)
+                        {
+                            throw new FormulaEvaluationException("While processing a + or - operator immediatly after a ), there were less than two values in valueStack");
+                        }
+
+                        double rightOperand = valueStack.Pop();
+                        double leftOperand = valueStack.Pop();
+                        string op = operStack.Pop();
+
+                        if (op == "+")
+                        {
+                            valueStack.Push(leftOperand + rightOperand);
+                        }
+                        else
+                        {
+                            valueStack.Push(leftOperand - rightOperand);
+                        }
+                    }
+
+                    if(operStack.Peek() == "(")
+                    {
+                        string discard = operStack.Pop();
+                    }
+                    else
+                    {
+                        throw new FormulaEvaluationException("Problem while evaluating a ).  The operStack should have ( on top, but did not");
+                    }
+
+                    if(operStack.Peek() == "*" || operStack.Peek() == "/")
+                    {
+                        if(valueStack.Count() < 2)
+                        {
+                            throw new FormulaEvaluationException("while evaluting a * or / oper immediately following a ), there were fewer than 2 values in value stack");
+                        }
+                        else
+                        {
+                            double rightOperand = valueStack.Pop();
+                            double leftOperand = valueStack.Pop();
+                            string op = operStack.Pop();
+
+                            if(op == "*")
+                            {
+                                valueStack.Push(leftOperand * rightOperand);
+                            }
+                            else
+                            {
+                                if(rightOperand == 0)
+                                {
+                                    throw new FormulaEvaluationException("Devision by zero occured immediatly after processing a )");
+                                }
+
+                                valueStack.Push(leftOperand / rightOperand);
+                            }
+
+                        }
+                    }
+                }
+                //if s is somehow anything else
+                else
+                {
+                    throw new FormulaFormatException("Format exception from Evaluate!");
+                }
+            }
+
+            //after processing each token:
+            //if there's no operators left in operStack
+            if(operStack.Count() == 0)
+            {
+                if(valueStack.Count() == 1)
+                {
+                    return valueStack.Pop();
+                }
+                else
+                {
+                    throw new FormulaEvaluationException("After processing each token, and with no operators left in operStack, there was not just 1 value in valueStack");
+                }
+            }
+            //if there's just one operator left, it should be either a - or a +
+            else if(operStack.Count() == 1)
+            {
+                string remainingOper = operStack.Pop();
+                if(remainingOper == "+" || remainingOper == "-")
+                {
+                    if(valueStack.Count() == 2)
+                    {
+                        if(remainingOper == "+")
+                        {
+                            return valueStack.Pop() + valueStack.Pop();
+                        }
+                        else
+                        {
+                            double rightOperand = valueStack.Pop();
+                            return valueStack.Pop() - rightOperand;
+                        }
+                    }
+                    else
+                    {
+                        throw new FormulaEvaluationException("After processing each token, and with one operator left in operStack, there were not exacly two values left in valueStack");
+                    }
+                }
+                else
+                {
+                    throw new FormulaEvaluationException("After processing each token, and with one operator left in operStack, that oper was not eith - or *");
+                }
+            }
+            //if there's more than just one operator left in operStack, throw exception
+            else
+            {
+                throw new FormulaEvaluationException("After processing each token, there was more than one operator left in the operStack");
+            }
         }
 
         /// <summary>
@@ -215,6 +441,4 @@ namespace SpreadsheetUtilities
         {
         }
     }
-
-
 }
