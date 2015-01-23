@@ -58,7 +58,6 @@ namespace SpreadsheetUtilities
                     else
                     {
                         Boolean subseqNumber = false;
-                        //Boolean buriedNumber = false;
 
                         for (int i = 1; i < s.Length; i++)
                         {   //... it must have subsequent numbers
@@ -67,14 +66,9 @@ namespace SpreadsheetUtilities
                             {
                                 subseqNumber = true;
                             }
-                            ////...it must not have more letters after preceeding numbers
-                            //if (subseqNumber && Char.IsLetter(s, i))
-                            //{
-                            //    buriedNumber = true;
-                            //}
                         }
                         //If it had no subsequent numbers, or had more letters following internal numbers, error is thrown
-                        if (!subseqNumber)// || buriedNumber)
+                        if (!subseqNumber)
                         {
                             throw new FormulaFormatException("Variables must be composed as letters followed by numbers");
                         }
@@ -122,7 +116,6 @@ namespace SpreadsheetUtilities
                         }
                     }
                 }
-
             }
 
             string finalToken = formulaList.ElementAt(formulaList.Count - 1);
