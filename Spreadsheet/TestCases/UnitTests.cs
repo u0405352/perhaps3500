@@ -77,7 +77,34 @@ namespace TestCases
         [ExpectedException(typeof(FormulaFormatException))]
         public void Construct12()
         {
-            Formula f = new Formula("5x5 + 5");
+            Formula f = new Formula("xxx6667");
+        }
+
+        [TestMethod]
+        [ExpectedException(typeof(FormulaFormatException))]
+        public void Construct13()
+        {
+            Formula f = new Formula("(x6 + 3) - ");
+        }
+
+        [TestMethod]
+        public void Construct14()
+        {
+            Formula f = new Formula("(x6 + 3) - 4 ");
+        }
+
+        [TestMethod]
+        [ExpectedException(typeof(FormulaFormatException))]
+        public void Construct15()
+        {
+            Formula f = new Formula("(x6 + 3)5 ");
+        }
+
+        [TestMethod]
+        [ExpectedException(typeof(FormulaFormatException))]
+        public void Construct16()
+        {
+            Formula f = new Formula("5 - -54");
         }
 
         [TestMethod]
@@ -88,6 +115,7 @@ namespace TestCases
         }
 
         [TestMethod]
+        [ExpectedException(typeof(FormulaFormatException))]
         public void Construct5()
         {
             Formula f = new Formula("xy12");

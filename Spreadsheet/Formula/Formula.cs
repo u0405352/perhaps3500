@@ -58,7 +58,7 @@ namespace SpreadsheetUtilities
                     else
                     {
                         Boolean subseqNumber = false;
-                        Boolean buriedNumber = false;
+                        //Boolean buriedNumber = false;
 
                         for (int i = 1; i < s.Length; i++)
                         {   //... it must have subsequent numbers
@@ -67,16 +67,16 @@ namespace SpreadsheetUtilities
                             {
                                 subseqNumber = true;
                             }
-                            //...it must not have more letters after preceeding numbers
-                            if (subseqNumber && Char.IsLetter(s, i))
-                            {
-                                buriedNumber = true;
-                            }
+                            ////...it must not have more letters after preceeding numbers
+                            //if (subseqNumber && Char.IsLetter(s, i))
+                            //{
+                            //    buriedNumber = true;
+                            //}
                         }
                         //If it had no subsequent numbers, or had more letters following internal numbers, error is thrown
-                        if (!subseqNumber || buriedNumber)
+                        if (!subseqNumber)// || buriedNumber)
                         {
-                            throw new FormulaFormatException("Variables must have a number following the last letter, and only numbers following letters");
+                            throw new FormulaFormatException("Variables must be composed as letters followed by numbers");
                         }
                         else
                         {
@@ -134,6 +134,11 @@ namespace SpreadsheetUtilities
             if (formulaList.Count(p => p == "(" == true) != formulaList.Count(p => p == ")" == true))
             {
                 throw new FormulaFormatException("The parenthesis aren't equal in number");
+            }
+
+            if (formulaList.Count < 3)
+            {
+                throw new FormulaFormatException("The formula had an insuffucient amount of operands and operators");
             }
 
         }
