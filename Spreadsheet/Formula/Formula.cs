@@ -46,6 +46,7 @@ namespace SpreadsheetUtilities
 
             foreach (string s in GetTokens(formula))
             {
+                //below check for any illegal tokens
                 if (s == "!" || s == "@" || s == "#" || s == "$" || s == "%" || s == "^" || s == "&" || s == "_"
                     || s == "=" || s == "[" || s == "}" || s == "{" || s == "]" || s == "<" || s == ">" || s == "?"
                     || s == "," || s == "." || s == "\"" || s == "\\" || s == ":" || s == ";" || s == "`" || s == "~")
@@ -53,6 +54,7 @@ namespace SpreadsheetUtilities
                     throw new FormulaFormatException("Illegal Token");
                 }
 
+                //below checks for formulas starting illegally
                 if (prevToken == null)
                 {
                     if (s == ")" || s == "*" || s == "+" || s == "-" || s == "/")
@@ -61,7 +63,7 @@ namespace SpreadsheetUtilities
                     }
 
                 }
-                else if(prevToken == "(" || prevToken == "+" || prevToken == "-" || prevToken == "/" || prevToken == "*")
+                else if (prevToken == "(" || prevToken == "+" || prevToken == "-" || prevToken == "/" || prevToken == "*")
                 {
                     if (s == ")" || s == "*" || s == "+" || s == "-" || s == "/")
                     {
@@ -75,7 +77,69 @@ namespace SpreadsheetUtilities
                         throw new FormulaFormatException("Tokens following a number, variable or closing parenthises must be either another closing parenthesis or an operator");
                     }
                 }
-                
+
+                //below checks status of variables or numbers
+                if (!(s == "(" || s == ")" || s == "*" || s == "+" || s == "-" || s == "/"))
+                {
+                    //if it begins with a number...
+                    
+                    if ((Char.IsDigit(s, 0)))
+                    {
+                        if (s.Length > 1)
+                        {
+                            Boolean numberOn = true;
+
+                            for (int i = 1; i < s.Length; i++)
+                            {   //... it must remain a number for its length, unless there's an e
+                                char letter;
+                                if (Char.TryParse(s, out letter))
+                                {
+                                    if (letter != 'e')
+                                    {
+                                        numberOn = false;
+                                    }
+                                }
+                            }
+                            //error is thrown if a letter was ever encountered
+                            if (!numberOn)
+                            {
+                                throw new FormulaFormatException("Numbers may not be followed by letters in variable names");
+                            }
+                        }
+                    }//if it begins with a letter...
+                    else if (Char.IsLetter(s, 0))
+                    {   //...it must not be by itself 
+                        if (s.Length == 1)
+                        {
+                            throw new FormulaFormatException("Variables must be followed by a number");
+                        }
+
+                        Boolean letterOn = true;
+
+                        for (int i = 1; i < s.Length; i++)
+                        {   //... it must have subsequent numbers
+                        
+                           
+
+                            if (Char.IsDigit(s, i))
+                            {
+                                letterOn = false;
+                            }
+                            //...it must not have more letters after preceeding numbers
+                            if (!letterOn && Char.IsLetter(s, i))
+                            {
+                                letterOn = true;
+                            }
+                        }
+                        //If it had no subsequent numbers, or had more letters following internal numbers, error is thrown
+                        if (letterOn)
+                        {
+                            throw new FormulaFormatException("Variables must have a number following the letters");
+                        }
+                    }
+                }
+
+                //below checks the status of parenthesis relations
                 if (s == "(")
                 {
                     leftParen++;

@@ -1,11 +1,13 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2013
-VisualStudioVersion = 12.0.31101.0
+VisualStudioVersion = 12.0.30501.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Formula", "Formula\Formula.csproj", "{1C0C48E7-D176-4E91-8E07-030157238D98}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FormulaTestCases", "TestCases\FormulaTestCases.csproj", "{A8A22F65-5C65-4C1C-B309-CB84BCFEABF4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsoleApplication1", "ConsoleApplication1\ConsoleApplication1.csproj", "{F6A77883-0805-4F08-AE4F-94272329BFE9}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +23,10 @@ Global
 		{A8A22F65-5C65-4C1C-B309-CB84BCFEABF4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A8A22F65-5C65-4C1C-B309-CB84BCFEABF4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A8A22F65-5C65-4C1C-B309-CB84BCFEABF4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F6A77883-0805-4F08-AE4F-94272329BFE9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F6A77883-0805-4F08-AE4F-94272329BFE9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F6A77883-0805-4F08-AE4F-94272329BFE9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F6A77883-0805-4F08-AE4F-94272329BFE9}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

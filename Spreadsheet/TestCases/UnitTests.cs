@@ -12,6 +12,21 @@ namespace TestCases
     [TestClass]
     public class UnitTests
     {
+        // Example
+        public static double Lookup(String s)
+        {
+            return 0.0;
+        }
+
+        [TestMethod]
+        public void test()
+        {
+            Formula f = new Formula("2+3");
+            Assert.AreEqual(f.Evaluate(Lookup), 5.0, 1e-6);
+        }
+
+
+
         [TestMethod]
         [ExpectedException(typeof(FormulaFormatException))]
         public void Construct1()
@@ -37,16 +52,33 @@ namespace TestCases
         [ExpectedException(typeof(FormulaFormatException))]
         public void Construct4()
         {
-            Formula f = new Formula("@");
+            Formula f = new Formula("2f3");
         }
 
+        [TestMethod]
+        public void Construct5()
+        {
+            Formula f = new Formula("xy12");
+        }
 
+        [TestMethod]
+        public void Construct6()
+        {
+            Formula f = new Formula("x2 + y3");
+        }
 
+        [TestMethod]
+        [ExpectedException(typeof(FormulaFormatException))]
+        public void Construct7()
+        {
+            Formula f = new Formula("2x + 3y");
+        }
 
-
-
-
-
+        [TestMethod]
+        public void Construct8()
+        {
+            Formula f = new Formula("2.5e9 + x5 / 17");
+        }
 
         [TestMethod]
         public void Evaluate1()
@@ -61,6 +93,13 @@ namespace TestCases
             Formula f = new Formula("x5");
             Assert.AreEqual(f.Evaluate(s => 22.5), 22.5, 1e-6);
         }
+
+
+        // s => 22.5
+
+        // double lookup(string s)
+        //      return 22.5;
+
 
         [TestMethod]
         [ExpectedException(typeof(FormulaEvaluationException))]
