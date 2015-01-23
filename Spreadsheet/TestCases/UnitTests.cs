@@ -25,7 +25,12 @@ namespace TestCases
             Assert.AreEqual(f.Evaluate(Lookup), 5.0, 1e-6);
         }
 
-
+        [TestMethod]
+        [ExpectedException(typeof(FormulaFormatException))]
+        public void uneqParen()
+        {
+            Formula f = new Formula("(()))");
+        }
 
         [TestMethod]
         [ExpectedException(typeof(FormulaFormatException))]
@@ -46,6 +51,26 @@ namespace TestCases
         public void Construct3()
         {
             Formula f = new Formula("2 3");
+        }
+
+        [TestMethod]
+        public void Construct9()
+        {
+            Formula f = new Formula("5 * X5 / 134.77 - D7");
+        }
+
+        [TestMethod]
+        [ExpectedException(typeof(FormulaFormatException))]
+        public void Construct10()
+        {
+            Formula f = new Formula("5 * 5x / 134.77 - 74");
+        }
+
+        [TestMethod]
+        [ExpectedException(typeof(FormulaFormatException))]
+        public void Construct11()
+        {
+            Formula f = new Formula("5 * xg5 x7 / 134.77 - 74");
         }
 
         [TestMethod]

@@ -18,6 +18,8 @@ namespace SpreadsheetUtilities
     /// </summary>
     public class Formula
     {
+        List<String> formulaList = new List<String>();
+
         /// <summary>
         /// Creates a Formula from a string that consists of a standard infix expression composed
         /// from non-negative floating-point numbers (using standard C# syntax for double/int literals), 
@@ -33,145 +35,107 @@ namespace SpreadsheetUtilities
         /// </summary>
         public Formula(String formula)
         {
-            int leftParen = 0;
-            int rightParen = 0;
-            string prevToken = null;
-
-            //try
-            //{
-            if (formula.Length < 1)
-            {
-                throw new FormulaFormatException("The Formula Must Have At Least One Token");
-            }
-
             foreach (string s in GetTokens(formula))
             {
-                //below check for any illegal tokens
-                if (s == "!" || s == "@" || s == "#" || s == "$" || s == "%" || s == "^" || s == "&" || s == "_"
-                    || s == "=" || s == "[" || s == "}" || s == "{" || s == "]" || s == "<" || s == ">" || s == "?"
-                    || s == "," || s == "." || s == "\"" || s == "\\" || s == ":" || s == ";" || s == "`" || s == "~")
+                double parseDouble;
+                if (double.TryParse(s, out parseDouble))
                 {
-                    throw new FormulaFormatException("Illegal Token");
-                }
-
-                //below checks for formulas starting illegally
-                if (prevToken == null)
-                {
-                    if (s == ")" || s == "*" || s == "+" || s == "-" || s == "/")
+                    if(parseDouble < 0)
                     {
-                        throw new FormulaFormatException("The Formula Must Begin With Either an Opening Parentheses, A Variable, Or A Number");
+                        throw new FormulaFormatException("Double Values Must Be Posative");
                     }
-
-                }
-                else if (prevToken == "(" || prevToken == "+" || prevToken == "-" || prevToken == "/" || prevToken == "*")
-                {
-                    if (s == ")" || s == "*" || s == "+" || s == "-" || s == "/")
+                    else
                     {
-                        throw new FormulaFormatException("Tokens following an open parenthesis or an operator may not be a closed parenthesis or another operator");
+                        formulaList.Add(s);
+                    }
+                }
+                else if(char.IsLetter(s, 0))
+                {
+                    if (s.Length < 2)
+                    {
+                        throw new FormulaFormatException("Letter Variables must be followed immediately by Numbers");
+                    }
+                    else
+                    {
+                        Boolean subseqNumber = false;
+                        Boolean buriedNumber = false;
+
+                        for (int i = 1; i < s.Length; i++)
+                        {   //... it must have subsequent numbers
+
+                            if (Char.IsDigit(s, i))
+                            {
+                                subseqNumber = true;
+                            }
+                            //...it must not have more letters after preceeding numbers
+                            if (subseqNumber && Char.IsLetter(s, i))
+                            {
+                                buriedNumber = true;
+                            }
+                        }
+                        //If it had no subsequent numbers, or had more letters following internal numbers, error is thrown
+                        if (!subseqNumber || buriedNumber)
+                        {
+                            throw new FormulaFormatException("Variables must have a number following the last letter, and only numbers following letters");
+                        }
+                        else
+                        {
+                            formulaList.Add(s);
+                        }
+                    }
+                }
+                else if (s == "(" || s == ")" || s == "*" || s == "+" || s == "-" || s == "/")
+                {
+                    if ((formulaList.Count() < 1) && s != "(" )
+                    {
+                        throw new FormulaFormatException("Formula can only begin with variable, number of (");
+                    }
+                    else if(formulaList.Count(p => p == ")" == true) > formulaList.Count(p => p == "(" == true))
+                    {
+                        throw new FormulaFormatException("Formula has too many closed parenthesis");
+                    }
+                    else
+                    {
+                        formulaList.Add(s);
                     }
                 }
                 else
                 {
-                    if (!(s == ")" || s == "*" || s == "+" || s == "-" || s == "/"))
-                    {
-                        throw new FormulaFormatException("Tokens following a number, variable or closing parenthises must be either another closing parenthesis or an operator");
-                    }
+                    throw new FormulaFormatException("Invalid token");
                 }
 
-                //below checks status of variables or numbers
-                if (!(s == "(" || s == ")" || s == "*" || s == "+" || s == "-" || s == "/"))
+                if (formulaList.Count > 1)
                 {
-                    //if it begins with a number...
-                    
-                    if ((Char.IsDigit(s, 0)))
+                    string previousToken = formulaList.ElementAt(formulaList.Count - 2);
+                    if (previousToken == "(" || previousToken == "+" || previousToken == "-" || previousToken == "/" || previousToken == "*")
                     {
-                        if (s.Length > 1)
+                        if (s == ")" || s == "*" || s == "+" || s == "-" || s == "/")
                         {
-                            Boolean numberOn = true;
-
-                            for (int i = 1; i < s.Length; i++)
-                            {   //... it must remain a number for its length, unless there's an e
-                                char letter;
-                                if (Char.TryParse(s, out letter))
-                                {
-                                    if (letter != 'e')
-                                    {
-                                        numberOn = false;
-                                    }
-                                }
-                            }
-                            //error is thrown if a letter was ever encountered
-                            if (!numberOn)
-                            {
-                                throw new FormulaFormatException("Numbers may not be followed by letters in variable names");
-                            }
+                            throw new FormulaFormatException("Tokens following an open parenthesis or an operator may not be a closed parenthesis or another operator");
                         }
-                    }//if it begins with a letter...
-                    else if (Char.IsLetter(s, 0))
-                    {   //...it must not be by itself 
-                        if (s.Length == 1)
+                    }
+                    else
+                    {
+                        if (!(s == ")" || s == "*" || s == "+" || s == "-" || s == "/"))
                         {
-                            throw new FormulaFormatException("Variables must be followed by a number");
-                        }
-
-                        Boolean letterOn = true;
-
-                        for (int i = 1; i < s.Length; i++)
-                        {   //... it must have subsequent numbers
-                        
-                           
-
-                            if (Char.IsDigit(s, i))
-                            {
-                                letterOn = false;
-                            }
-                            //...it must not have more letters after preceeding numbers
-                            if (!letterOn && Char.IsLetter(s, i))
-                            {
-                                letterOn = true;
-                            }
-                        }
-                        //If it had no subsequent numbers, or had more letters following internal numbers, error is thrown
-                        if (letterOn)
-                        {
-                            throw new FormulaFormatException("Variables must have a number following the letters");
+                            throw new FormulaFormatException("Tokens following a number, variable or closing parenthises must be either another closing parenthesis or an operator");
                         }
                     }
                 }
 
-                //below checks the status of parenthesis relations
-                if (s == "(")
-                {
-                    leftParen++;
-                }
-                if (s == ")")
-                {
-                    rightParen++;
-                }
-                if (rightParen > leftParen)
-                {
-                    throw new FormulaFormatException("The Formula Is Incorrectly Parenthesized");
-                }
-
-                prevToken = s;
             }
 
-            if (prevToken != null && prevToken == "(" || prevToken == "*" || prevToken == "+" || prevToken == "-" || prevToken == "/")
+            string finalToken = formulaList.ElementAt(formulaList.Count - 1);
+            if (finalToken == "(" || finalToken == "*" || finalToken == "+" || finalToken == "-" || finalToken == "/")
             {
                 throw new FormulaFormatException("The Formula Must End With Either a Closing Parentheses, A Variable, Or A Number");
             }
 
-            if (leftParen != rightParen)
+            if (formulaList.Count(p => p == "(" == true) != formulaList.Count(p => p == ")" == true))
             {
-                throw new FormulaFormatException("The Formula Has An Unequal Number Of Parenthesis");
+                throw new FormulaFormatException("The parenthesis aren't equal in number");
             }
 
-            // }
-            //catch (Exception e)
-            //{
-            //    Debug.Indent();
-            //    Debug.WriteLine(e.Message);
-            //}
         }
 
         /// <summary>

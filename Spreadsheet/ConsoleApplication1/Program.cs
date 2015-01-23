@@ -20,12 +20,21 @@ namespace ConsoleApplication1
 
             double resultTwo = 0.0;
 
+
+
             if (Double.TryParse("2.9e2", out resultTwo))
             {
                 Console.WriteLine(resultTwo);
             }
 
-            Console.WriteLine(Char.IsSymbol('x') + "x is a symbol");
+            Console.WriteLine(Char.IsLetter('/') + " / is a letter");
+
+            Console.WriteLine(Char.IsLetter('(') + " ( is a letter");
+
+            Console.WriteLine(Char.IsLetter('*') + " * is a letter");
+
+            Console.WriteLine(Char.IsLetter("X45", 0) + " X45 is a letter at 0 index");
+
         }
     }
 }
