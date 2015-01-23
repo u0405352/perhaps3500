@@ -60,7 +60,7 @@ namespace SpreadsheetUtilities
                         Boolean subseqNumber = false;
 
                         for (int i = 1; i < s.Length; i++)
-                        {   //... it must have subsequent numbers
+                        {   //... it must have subsequent numbers...
 
                             if (Char.IsDigit(s, i))
                             {
