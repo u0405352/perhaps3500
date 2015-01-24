@@ -61,7 +61,6 @@ namespace TestCases
         }
 
         [TestMethod]
-        [ExpectedException(typeof(FormulaFormatException))]
         public void Construct5()
         {
             Formula f = new Formula("xy12");
@@ -104,13 +103,6 @@ namespace TestCases
         public void Construct11()
         {
             Formula f = new Formula("5 * xg5 x7 / 134.77 - 74");
-        }
-
-        [TestMethod]
-        [ExpectedException(typeof(FormulaFormatException))]
-        public void Construct12()
-        {
-            Formula f = new Formula("xxx6667");
         }
 
         [TestMethod]
@@ -197,5 +189,11 @@ namespace TestCases
             Assert.AreEqual(f.Evaluate(s => 0), 2.0, 1e-6);
         }
         
+        [TestMethod]
+        public void Evaluate8()
+        {
+            Formula f = new Formula("17");
+            Assert.AreEqual(f.Evaluate(s => 0), 17.0, 1e-6);
+        }
     }
 }

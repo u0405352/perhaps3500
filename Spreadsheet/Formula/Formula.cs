@@ -130,11 +130,6 @@ namespace SpreadsheetUtilities
                 throw new FormulaFormatException("The parenthesis aren't equal in number");
             }
 
-            if (formulaList.Count < 3)
-            {
-                throw new FormulaFormatException("The formula had an insuffucient amount of operands and operators");
-            }
-
         }
 
         /// <summary>
@@ -157,16 +152,37 @@ namespace SpreadsheetUtilities
         {
             Stack<double> valueStack = new Stack<double>();
             Stack<String> operStack = new Stack<String>();
+            double varValue;
+            double doubleValue;
+            Boolean sIsVar;
+         
 
             foreach (String s in formulaList)
             {
-                //if s is either a value
-                double doubValue;
-                if (double.TryParse(s, out doubValue) || Char.IsLetter(s, 0))
+                sIsVar = false;
+                varValue = -1;
+
+                if (Char.IsLetter(s, 0))
                 {
+                    try
+                    {
+                        varValue = lookup(s);
+                    }
+                    catch (ArgumentException e)
+                    {
+                        throw new FormulaEvaluationException("Exception while looking up variable: " + e.Message);
+                    }
+
+                    sIsVar = true;
+                }
+
+                //if s is either a double or variable value
+                if (double.TryParse(s, out doubleValue) || sIsVar)
+                {
+                    //If there is a * or / on top of operStack
                     if (operStack.Count() != 0 && (operStack.Peek() == "*" || operStack.Peek() == "/"))
                     {
-                        if(valueStack.Count < 1)
+                        if (valueStack.Count < 1)
                         {
                             throw new FormulaEvaluationException("While processing a value, an attempt was made to multiply that value by a preceeding value but the valueStack was empty");
                         }
@@ -176,56 +192,51 @@ namespace SpreadsheetUtilities
 
                         if (op == "*")
                         {
-                            if (Char.IsLetter(s, 0))
+                            if (sIsVar)
                             {
-                                if(lookup(s) == null)//***************fix this!!!!!!!!!!!!!!!!!!!***************************************// !!!!!!!!! *********** ////////
-                                {
-                                    throw new FormulaEvaluationException("Variable: " + s +" has no value");
-                                }
-                                valueStack.Push(leftOperand * lookup(s));
+                                valueStack.Push(leftOperand * varValue);
                             }
                             else
                             {
-                                valueStack.Push(leftOperand * doubValue);
+                                valueStack.Push(leftOperand * doubleValue);
                             }
                         }
-                        else
+                        else //op == "/"
                         {
-                            if (Char.IsLetter(s, 0))
+                            if (sIsVar)
                             {
-                                if(lookup(s) == null)
+                                if (varValue != 0)
                                 {
-                                    throw new FormulaEvaluationException("Variable: " + s +" has no value");
+                                    valueStack.Push(leftOperand / varValue);
                                 }
-
-                                if(lookup(s) == 0)
+                                else
                                 {
                                     throw new FormulaEvaluationException("Devision by Zero was attempted via variable immediately following the processing of a preceeding value");
                                 }
-
-                                valueStack.Push(leftOperand / lookup(s));
                             }
                             else
                             {
-                                if(doubValue == 0)
+                                if (doubleValue != 0)
+                                {
+                                    valueStack.Push(leftOperand / doubleValue);
+                                }
+                                else
                                 {
                                     throw new FormulaEvaluationException("Devision by Zero was attempted via double immediatlly following the processing of a preceeding value");
                                 }
-
-                                valueStack.Push(leftOperand / doubValue);
                             }
                         }
                     }
-
+                    //If there's no + or / on top of stack
                     else
                     {
-                        if(Char.IsLetter(s, 0))
+                        if (sIsVar)
                         {
-                            valueStack.Push(lookup(s));
+                            valueStack.Push(varValue);
                         }
                         else
                         {
-                            valueStack.Push(doubValue);
+                            valueStack.Push(doubleValue);
                         }
                     }
                 }
@@ -234,7 +245,7 @@ namespace SpreadsheetUtilities
                 {
                     if (operStack.Count() != 0 && (operStack.Peek() == "-" || operStack.Peek() == "+"))
                     {
-                        if(valueStack.Count < 2)
+                        if (valueStack.Count < 2)
                         {
                             throw new FormulaEvaluationException("While processing a + or - operator, there were less than two values in valueStack");
                         }
@@ -269,9 +280,9 @@ namespace SpreadsheetUtilities
                 //if s is )
                 else if (s == ")")
                 {
-                    if(operStack.Peek() == "+" || operStack.Peek() == "-")
+                    if (operStack.Peek() == "+" || operStack.Peek() == "-")
                     {
-                        if(valueStack.Count < 2)
+                        if (valueStack.Count < 2)
                         {
                             throw new FormulaEvaluationException("While processing a + or - operator immediatly after a ), there were less than two values in valueStack");
                         }
@@ -290,7 +301,7 @@ namespace SpreadsheetUtilities
                         }
                     }
 
-                    if(operStack.Peek() == "(")
+                    if (operStack.Peek() == "(")
                     {
                         string discard = operStack.Pop();
                     }
@@ -299,9 +310,9 @@ namespace SpreadsheetUtilities
                         throw new FormulaEvaluationException("Problem while evaluating a ).  The operStack should have ( on top, but did not");
                     }
 
-                    if(operStack.Peek() == "*" || operStack.Peek() == "/")
+                    if (operStack.Peek() == "*" || operStack.Peek() == "/")
                     {
-                        if(valueStack.Count() < 2)
+                        if (valueStack.Count() < 2)
                         {
                             throw new FormulaEvaluationException("while evaluting a * or / oper immediately following a ), there were fewer than 2 values in value stack");
                         }
@@ -311,13 +322,13 @@ namespace SpreadsheetUtilities
                             double leftOperand = valueStack.Pop();
                             string op = operStack.Pop();
 
-                            if(op == "*")
+                            if (op == "*")
                             {
                                 valueStack.Push(leftOperand * rightOperand);
                             }
                             else
                             {
-                                if(rightOperand == 0)
+                                if (rightOperand == 0)
                                 {
                                     throw new FormulaEvaluationException("Devision by zero occured immediatly after processing a )");
                                 }
@@ -337,9 +348,9 @@ namespace SpreadsheetUtilities
 
             //after processing each token:
             //if there's no operators left in operStack
-            if(operStack.Count() == 0)
+            if (operStack.Count() == 0)
             {
-                if(valueStack.Count() == 1)
+                if (valueStack.Count() == 1)
                 {
                     return valueStack.Pop();
                 }
@@ -349,14 +360,14 @@ namespace SpreadsheetUtilities
                 }
             }
             //if there's just one operator left, it should be either a - or a +
-            else if(operStack.Count() == 1)
+            else if (operStack.Count() == 1)
             {
                 string remainingOper = operStack.Pop();
-                if(remainingOper == "+" || remainingOper == "-")
+                if (remainingOper == "+" || remainingOper == "-")
                 {
-                    if(valueStack.Count() == 2)
+                    if (valueStack.Count() == 2)
                     {
-                        if(remainingOper == "+")
+                        if (remainingOper == "+")
                         {
                             return valueStack.Pop() + valueStack.Pop();
                         }
